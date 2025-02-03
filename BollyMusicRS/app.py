@@ -7,6 +7,7 @@ import requests
 
 CLIENT_ID = "51e2744868b945bcba0fe90d280df346"
 CLIENT_SECRET = "1a97f11a318349dbb965ec95513c401b"
+GENIUS_ACCESS_TOKEN = "Fr9UV8JlaKa92tqDKYBO2dkOaHUxAI8eAfyHIy0TyX39pmGgZ2CqC2kpDMtZWgoO"
 
 # Initialize the Spotify client
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
@@ -83,9 +84,9 @@ selected_movie = st.selectbox(
     music_list
 )
 
-if st.button("Show Lyrics"):
-   lyrics = get_lyrics(selected_song)
-   st.text_area("Lyrics", lyrics, height=300)
+if st.button("show lyrics"):
+    lyrics = get_lyrics("selected_song")
+    st.text_area("lyrics",lyrics,height=300)
 
 if st.button('Search'):
     recommended_music_names,recommended_music_posters = recommend(selected_movie)
