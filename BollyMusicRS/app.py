@@ -5,22 +5,26 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import requests
 
-
 CLIENT_ID = "51e2744868b945bcba0fe90d280df346"
 CLIENT_SECRET = "1a97f11a318349dbb965ec95513c401b"
 
 # Initialize the Spotify client
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+genius = lyricsgenius.Genius(GENIUS_ACCESS_TOKEN, timeout=5, retries=2)
 
-def get_lyrics(song_name, artist_name):
-    base_url = f"https://api.lyrics.ovh/v1/{artist_name}/{song_name}"
-    response = requests.get(base_url)
-
-    if response.status_code == 200:
-       return response.json().get("lyrics","lyrics not found.")
-    else:
-        return"lyrics not found."
+def get_lyrics(song_name):
+    """Fetch lyrics using Genius API"""
+    try:
+        print(f"Searching for: {song_name}")  # Debugging line
+        song = genius.search_song(song_name)
+        if song:
+            print("Lyrics Found!")  # Debugging line
+            return song.lyrics
+        else:
+            return "Lyrics not found."
+    except Exception as e:
+        return f"Error fetching lyrics: {str(e)}"
 
 def get_artist_info(artist_name):
     results = sp.search(q=f"artist:{artist_name}",type="artist")
@@ -79,9 +83,9 @@ selected_movie = st.selectbox(
     music_list
 )
 
-if st.button("show lyrics"):
-    lyrics = get_lyrics("selected_song",selected_artist)
-    st.text_area("lyrics",lyrics,height=300)
+if st.button("Show Lyrics"):
+   lyrics = get_lyrics(selected_song)
+   st.text_area("Lyrics", lyrics, height=300)
 
 if st.button('Search'):
     recommended_music_names,recommended_music_posters = recommend(selected_movie)
