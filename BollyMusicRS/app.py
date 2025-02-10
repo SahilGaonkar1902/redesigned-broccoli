@@ -14,96 +14,150 @@ client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, clien
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 genius = lyricsgenius.Genius(GENIUS_ACCESS_TOKEN, timeout=5, retries=2)
 
+st.header('Bollywood Songs Recommender')
+music = pickle.load(open('df','rb'))
+similarity = pickle.load(open('similarity','rb'))
+
+
+# ---- Function to Get Lyrics ----
 def get_lyrics(song_name):
-    """Fetch lyrics using Genius API"""
     try:
-        print(f"Searching for: {song_name}")  # Debugging line
         song = genius.search_song(song_name)
-        if song:
-            print("Lyrics Found!")  # Debugging line
-            return song.lyrics
-        else:
-            return "Lyrics not found."
+        return song.lyrics if song else "Lyrics not found."
     except Exception as e:
         return f"Error fetching lyrics: {str(e)}"
 
+# ---- Function to Search Song Versions ----
+def search_song_versions(song_name):
+    search_query = f"track:{song_name}"
+    result = sp.search(q=search_query, type="track", limit=5)
+
+    song_versions = []
+    if result and result["tracks"]["items"]:
+        for track in result["tracks"]["items"]:
+            track_name = track["name"]
+            album_name = track["album"]["name"]
+            release_date = track["album"]["release_date"]
+            image_url = track["album"]["images"][0]["url"] if track["album"]["images"] else "https://i.postimg.cc/0QNxYz4V/social.png"
+            
+            song_versions.append({
+                "name": track_name,
+                "album": album_name,
+                "release_date": release_date,
+                "image_url": image_url
+            })
+    return song_versions
+
+# ---- Function to Get Artist Info ----
 def get_artist_info(artist_name):
-    results = sp.search(q=f"artist:{artist_name}",type="artist")
-    if results["artists"]["items"]:
+    results = sp.search(q=f"artist:{artist_name}", type="artist")
+    
+    if results and results["artists"]["items"]:
         artist = results["artists"]["items"][0]
-        artist_image_url = artist["images"][0]["url"]if artist["images"] else "https://i.postimg.cc/0QNxYz4V/social.png"
-        artist_popularity = artist["popularity"]
-        genres = artist["genres"]
+        artist_image_url = artist["images"][0]["url"] if artist["images"] else "https://i.postimg.cc/0QNxYz4V/social.png"
+        artist_popularity = artist.get("popularity", 0)
+        genres = artist.get("genres", [])
         return artist_image_url, artist_popularity, genres
     else:
-        return "https://i.postimg.cc/0QNxYz4V/social.png",0,[]
+        return "https://i.postimg.cc/0QNxYz4V/social.png", 0, []
 
+# ---- Function to Get Song Album Cover ----
 def get_song_album_cover_url(song_name, artist_name):
     search_query = f"track:{song_name} artist:{artist_name}"
     results = sp.search(q=search_query, type="track")
 
     if results and results["tracks"]["items"]:
         track = results["tracks"]["items"][0]
-        album_cover_url = track["album"]["images"][0]["url"]
-        print(album_cover_url)
-        return album_cover_url
-    else:
-        return "https://i.postimg.cc/0QNxYz4V/social.png"
+        return track["album"]["images"][0]["url"]
+    return "https://i.postimg.cc/0QNxYz4V/social.png"
 
+# ---- Function to Recommend Songs ----
 def recommend(song):
-    index = music[music['Song-Name'] == song].index[0]
-    distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
-    recommended_music_names = []
-    recommended_music_posters = []
-    for i in distances[1:6]:
-        # fetch the movie poster
-        artist = music.iloc[i[0]]['Singer/Artists']
-        print(artist)
-        print(music.iloc[i[0]]['Song-Name'])
-        recommended_music_posters.append(get_song_album_cover_url(music.iloc[i[0]]['Song-Name'], artist))
-        recommended_music_names.append(music.iloc[i[0]]['Song-Name'])
+    try:
+        index = music[music['music_name'] == song].index[0]
+        distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
+        
+        recommended_music_names = []
+        recommended_music_posters = []
+        
+        for i in distances[1:6]:  # Ensure at least 5 recommendations exist
+            singer = music.iloc[i[0]].singer
+            recommended_music_names.append(music.iloc[i[0]].music_name)
+            recommended_music_posters.append(get_song_album_cover_url(music.iloc[i[0]].music_name, singer))
 
-    return recommended_music_names,recommended_music_posters
+        return recommended_music_names, recommended_music_posters
+    
+    except Exception as e:
+        return [], []  # Ensure two empty lists are returned if an error occurs
 
-st.header('Bollywood Songs Recommender')
-music = pickle.load(open('df','rb'))
-similarity = pickle.load(open('similarity','rb'))
 
-artist_list = music['Singer/Artists'].unique()
-selected_artist = st.selectbox("Select an artist",artist_list)
+# ---- Streamlit UI ----
+st.title("🎵 Music & Artist Explorer")
 
-if st.button('show Artist Details'):
+menu = st.sidebar.radio("📌 Menu", ["Home", "Search Artist", "Find Versions", "Get Lyrics", "Recommendations"])
+
+# ---- Home Page ----
+if menu == "Home":
+    st.header("🎶 Welcome to the Music Explorer App!")
+    st.write("Use the menu on the left to explore different features.")
+
+# ---- Sidebar: Artist Information ----
+st.sidebar.header("🔎 Search Artist Info")
+artist_list = music['singer'].unique()
+selected_artist = st.sidebar.selectbox("Type or select an artist", artist_list)
+
+if st.sidebar.button("Show Artist Details"):
     artist_image_url, artist_popularity, genres = get_artist_info(selected_artist)
-    st.image(artist_image_url, caption=selected_artist, width=300)
-    st.write(f"**popularity**:{artist_popularity}")
-    st.write(f"**Genres**:{', '.join(genres)}")
+    st.sidebar.image(artist_image_url, caption=selected_artist, width=300)
+    st.sidebar.write(f"**Popularity**: {artist_popularity}")
+    st.sidebar.write(f"**Genres**: {', '.join(genres) if genres else 'N/A'}")
 
-music_list = music['Song-Name'].values
-selected_movie = st.selectbox(
-    "Type or select a song from the dropdown",
-    music_list
-)
+# ---- Main Section: Song Selection & Recommendation ----
+st.header("🎧 Song Recommendations")
 
-if st.button("show lyrics"):
-    lyrics = get_lyrics("selected_song")
-    st.text_area("lyrics",lyrics,height=300)
+music_list = music['music_name'].values
+selected_song = st.selectbox("🎶 Select a song", music_list)
 
-if st.button('Search'):
-    recommended_music_names,recommended_music_posters = recommend(selected_movie)
-    col1, col2, col3, col4, col5= st.columns(5)
-    with col1:
-        st.text(recommended_music_names[0])
-        st.image(recommended_music_posters[0])
-    with col2:
-        st.text(recommended_music_names[1])
-        st.image(recommended_music_posters[1])
+if st.button("Show Recommendation"):
+    st.session_state["recommendations"] = recommend(selected_song)
 
-    with col3:
-        st.text(recommended_music_names[2])
-        st.image(recommended_music_posters[2])
-    with col4:
-        st.text(recommended_music_names[3])
-        st.image(recommended_music_posters[3])
-    with col5:
-        st.text(recommended_music_names[4])
-        st.image(recommended_music_posters[4])
+# Display recommendations
+if "recommendations" in st.session_state:
+    recommended_music_names, recommended_music_posters = st.session_state["recommendations"]
+
+    if recommended_music_names:
+        cols = st.columns(5)
+        for i, col in enumerate(cols):
+            with col:
+                st.text(recommended_music_names[i])
+                st.image(recommended_music_posters[i])
+    else:
+        st.warning("No recommendations found for this song.")
+else:
+    st.info("Select a song and click 'Show Recommendation' to see suggestions.")
+
+# ---- Song Version Finder ----
+st.header("🔍 Find Different Versions of a Song")
+
+if st.button("Find Versions"):
+    song_versions = search_song_versions(selected_song)
+
+    if song_versions:
+        version_options = [f"{v['name']} - {v['album']} ({v['release_date']})" for v in song_versions]
+        selected_version = st.selectbox("Select the correct version:", version_options)
+        
+        selected_song_details = next(v for v in song_versions if f"{v['name']} - {v['album']} ({v['release_date']})" == selected_version)
+
+        st.image(selected_song_details["image_url"], caption=selected_version, width=300)
+        
+        # Fetch lyrics
+        lyrics = get_lyrics(selected_song_details["name"])
+        st.text_area("Lyrics", lyrics, height=300)
+    else:
+        st.write("No versions found.")
+
+# ---- Lyrics Section ----
+st.header("📜 Get Lyrics")
+if st.button("Show Lyrics"):
+    lyrics = get_lyrics(selected_song)
+    st.text_area("Lyrics", lyrics, height=300)
