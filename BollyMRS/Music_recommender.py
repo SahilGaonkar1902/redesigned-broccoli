@@ -5,11 +5,11 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import lyricsgenius
 
 # ---- Spotify API Credentials ----
-CLIENT_ID = "5651387a4b7c4dc1bc80d4783a853b30"
-CLIENT_SECRET = "2697f07c7b3b4ac8937b22fd6f89b3aa"
+CLIENT_ID = "51e2744868b945bcba0fe90d280df346"
+CLIENT_SECRET = "1a97f11a318349dbb965ec95513c401b"
 
 # ---- Genius API Credentials ----
-GENIUS_ACCESS_TOKEN = "PUbu5fELoSxzz72odLJv_Bn32WehyzqAwRVAhLUwIfYuXUpRpzHsXicBD86DLCU4"
+GENIUS_ACCESS_TOKEN = "WlrCKwn50uP4B82mQCVYRSPFCpSTdFcH09-OogfgTUInrqUkyELzBKlF7G1NTTmf"
 
 # Initialize APIs
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
