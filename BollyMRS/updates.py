@@ -51,22 +51,26 @@ st.write("✔ **Fetch Song Lyrics** - Instantly get lyrics for any song.")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.image("https://i.postimg.cc/tJvLxK7M/recommendations.jpg", use_column_width=True)
-    st.write("#### 🎧 Song Recommendations")
-    st.write("Discover songs similar to the ones you love based on an advanced similarity algorithm.")
+    container = st.container(border = True)
+    container.image("https://i.postimg.cc/tJvLxK7M/recommendations.jpg", use_column_width=True)
+    container.write("#### 🎧 Song Recommendations")
+    container.write("Discover songs similar to the ones you love based on an advanced similarity algorithm.")
 
-    st.image("https://i.postimg.cc/PxXcknLP/artist.jpg", use_column_width=True)
-    st.write("#### 🔍 Artist Search")
-    st.write("Find detailed information about your favorite artists, including genres and popularity.")
+    container1 = st.container(border = True)
+    container1.image("https://i.postimg.cc/PxXcknLP/artist.jpg", use_column_width=True)
+    container1.write("#### 🔍 Artist Search")
+    container1.write("Find detailed information about your favorite artists, including genres and popularity.")
 
 with col2:
-    st.image("https://i.postimg.cc/kGjL3Nyz/versions.jpg", use_column_width=True)
-    st.write("#### 🎶 Song Versions")
-    st.write("Check out different versions of your favorite songs, from covers to remixes.")
+    container2 = st.container(border = True)
+    container2.image("https://i.postimg.cc/kGjL3Nyz/versions.jpg", use_column_width=True)
+    container2.write("### Song version.")
+    container2.write("Check out different versions of your favorite songs, from covers to remixes")
 
-    st.image("https://i.postimg.cc/y8V5XKNX/lyrics.jpg", use_column_width=True)
-    st.write("#### 📜 Get Lyrics")
-    st.write("Instantly fetch lyrics for any song and sing along!")
+    container3 = st.container(border = True)
+    container3.image("https://i.postimg.cc/y8V5XKNX/lyrics.jpg", use_column_width=True)
+    container3.write("#### 📜 Get Lyrics")
+    container3.write("Instantly fetch lyrics for any song and sing along!")
 
 
 # ---- Functions ----
@@ -192,4 +196,3 @@ elif menu == "Search Artist":
         st.image(artist_image_url, caption=selected_artist, width=300)
         st.write(f"**Popularity**: {artist_popularity}")
         st.write(f"**Genres**: {', '.join(genres) if genres else 'N/A'}")
-
