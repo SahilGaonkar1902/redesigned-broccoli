@@ -4,6 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import lyricsgenius
 import time
+import login
 
 # ---- Spotify API Credentials ----
 CLIENT_ID = "51e2744868b945bcba0fe90d280df346"
@@ -98,7 +99,7 @@ st.logo(logo, size="small")
 st.subheader("Songs Recommendation System",divider="gray")
 st.text("")
 st.text("")
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["| Home |", "| Recommendations |", "| Lyrics |", "| Song Info |", "| Artist Info |"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["| Home |", "| Recommendations |", "| Lyrics |", "| Song Info |", "| Artist Info |", "| Login Page |"])
 
 with tab1:
     con0 = st.container(border=True)
@@ -199,3 +200,6 @@ with tab5:
             con4.image(artist_image_url, caption=selected_artist, width=300)
             con4.write(f"*Popularity*: {artist_popularity}")
             con4.write(f"*Genres*: {', '.join(genres) if genres else 'N/A'}")
+            
+with tab6:
+    login.log()
