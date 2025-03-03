@@ -203,3 +203,15 @@ with tab5:
             
 with tab6:
     login.log()
+
+# Function to show ad alert
+def show_ad():
+    st.toast("🚀 Special Offer: Get 50% Off Today! 🎉", icon="🔥")
+
+# Show ad initially
+show_ad()
+
+# Reappear every 20 seconds
+for _ in range(5):  # Repeat a few times
+    time.sleep(15)
+    show_ad()
